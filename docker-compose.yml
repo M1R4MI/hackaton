@@ -1,0 +1,38 @@
+version: '3.1'
+
+services:
+
+  db:
+    container_name: mysql
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: linksDb
+      MYSQL_USER: me
+      MYSQL_PASSWORD: mainRoot
+    volumes:
+    - ./mysql:/var/lib/mysql
+    ports:
+    - 3308:3308
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 2s
+      retries: 5
+  app:
+    container_name: app
+    image: node:18
+    user: "node"
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./:/home/node/app
+    ports:
+      - 3015:3015
+    command: "npm start"
